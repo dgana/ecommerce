@@ -29,9 +29,10 @@
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="fa fa-shopping-cart fa-lg"></span><span class="caret"></span></a>
               <ul class="dropdown-menu" id="add_cart" style="min-width:260px;">
-
                 <li role="separator" class="divider"></li>
-                <li><span style="padding-left:15px; cursor:pointer;" id="checkout">Checkout</span></li>
+                <li><span style="padding:0px 20px;" >Total: </span><i id="total_cart" style="float:right; padding:0px 20px;"></i></li>
+                <li role="separator" class="divider"></li>
+                <li><span style="padding-left:20px; cursor:pointer;" id="checkout">Checkout</span></li>
               </ul>
             </li>
           </ul>
@@ -89,6 +90,7 @@
               <p><b>Price: </b>${currency(data[i].price)}</p>
               <p><button class="btn btn-success" id="add_cart_${counter}">Add To Cart</button></p>
               <input type="hidden" id="get_product_id_${counter}" value="${data[i]._id}">
+              <input type="hidden" id="get_product_price_${counter}" value="${data[i].price}">
             </div>
           </div>
         </div>
@@ -110,78 +112,67 @@
 
     function reduceStock(i) {
       current_stock = $(`#product_stock_${i}`).html()
-      new_stock = current_stock - 1
+      if(current_stock === '1') {
+        $('#add_cart_'+i).attr('disabled', 'disabled')
+        new_stock = current_stock - 1
+      } else {
+        new_stock = current_stock - 1
+      }
+
       $(`#product_stock_${i}`).html(new_stock)
     }
 
-    let qty = 1
+    let inputLocalStorage = []
+    let objLocalStorage = {}
+    let totalPrice = [];
+    let viewPrice;
     function updateStock(i) {
       let product_name, current_carts;
       product_name = $(`#product_name_${i}`).html()
       if($(`#checkout_${i}`).length > 0) {
         let current_quantity, new_quantity;
-        current_quantity = localStorage.getItem(product_name, qty);
-        new_quantity = Number(current_quantity) + 1
-        localStorage.setItem(product_name, new_quantity)
-        $(`#checkout_${i}`).remove()
-        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="padding-left:20px;">Qty: </i><i>${new_quantity}</i></a></li>`)
-      } else {
-        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="padding-left:20px;">Qty: </i><i>1</i></a></li>`)
-        localStorage.setItem(product_name, 1);
-        localStorage.setItem("cart"+i, $('#get_product_id_'+i).val());
 
-        current_carts = localStorage.setItem('carts', [])
-        current_carts = getItem()
-        new_carts = current_carts.push({obj})
-        loc
+        let productID = $('#get_product_id_'+i).val()
+        let productPrice = $('#get_product_price_'+i).val()
+
+        let currentCarts = localStorage.getItem('carts')
+        let getCarts = JSON.parse(currentCarts)
+        new_quantity = getCarts[i-1].qty + 1;
+
+        objLocalStorage = {id: productID, name: product_name, qty: new_quantity, price: productPrice}
+        if(objLocalStorage.id === productID) {
+          inputLocalStorage[i-1].qty = new_quantity
+          totalPrice[i-1] = Number(objLocalStorage.price) * objLocalStorage.qty
+        } else {
+          inputLocalStorage.push(objLocalStorage)
+          totalPrice[i-1] = Number(objLocalStorage.price)
+        }
+        localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
+
+        console.log(totalPrice);
+        viewPrice = totalPrice.reduce(function(x,y){ return x + y })
+        $(`#checkout_${i}`).remove()
+        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
+        $('#total_cart').html(currency(viewPrice))
+
+      } else {
+        let productID = $('#get_product_id_'+i).val()
+        let productPrice = $('#get_product_price_'+i).val()
+
+        objLocalStorage = {id: productID, name: product_name, qty: 1, price: productPrice}
+        totalPrice[i-1] = Number(objLocalStorage.price)
+        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
+
+        inputLocalStorage.push(objLocalStorage)
+        console.log(inputLocalStorage);
+        localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
+
+        console.log(totalPrice);
+        viewPrice = totalPrice.reduce(function(x,y){ return x + y })
+        $('#total_cart').html(currency(viewPrice))
       }
     }
 
-    // $('#checkout').click(function(){
-    //   $('')
-    // })
-
-    // function delete_todo(id) {
-    //   $.ajax({
-    //     type: "DELETE",
-    //     url: "/api/todos/delete",
-    //     data: {id: id},
-    //     dataType: "json"
-    //   })
-    //   .done(function(data) {
-    //     $(`#${data._id}`).html('')
-    //   });
-    //
-    //   return false;
-    // }
-    //
-    // function update_todo(id) {
-    //   let getComplete = $(`#update_${id}`).html()
-    //
-    //   if(getComplete){
-    //     $(`#update_${id}`).html(false)
-    //   } else {
-    //     $(`#update_${id}`).html(true)
-    //   }
-    //   console.log(getComplete);
-    //   $.ajax({
-    //     type: "PUT",
-    //     url: "/api/todos/update",
-    //     data: {id: id},
-    //     dataType: "json"
-    //   })
-    //   .done(function(data) {
-    //     console.log(data);
-    //     let img = '';
-    //     if(data.completed) {
-    //       img = '<img src="images/false.png" style="width:30px;" />'
-    //     } else {
-    //       img = '<img src="images/check.png" style="width:30px;" />'
-    //     }
-    //     $(`#update_${data._id}`).html(img)
-    //   });
-    //   return false;
-    // }
     });
     </script>
   </body>
