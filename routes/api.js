@@ -1,10 +1,10 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 var controller = require('../controllers/product')
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+router.post('/', controller.add)
+router.get('/', controller.read)
+router.put('/:id', controller.update)
+router.delete('/:id', controller.delete)
 
-module.exports = router;
+module.exports = router

@@ -22,19 +22,19 @@ module.exports = {
     })
   },
   delete: (req, res) => {
-    Products.findByIdAndRemove(req.body.id, function (err, product) {
+    Products.findByIdAndRemove(req.params.id, function (err, product) {
       if (err) throw err
       res.json(product)
     })
   },
   update: (req, res) => {
-    Products.findByIdAndUpdate(req.body.id, {
+    Products.findByIdAndUpdate(req.params.id, {
       name: req.body.name,
       category: req.body.category,
       stock: req.body.stock,
       price: req.body.price,
       updated_at: new Date()
-    }, function (err, product) {
+    }, {new: true}, function (err, product) {
       if (err) throw err
       res.json(product)
     })
