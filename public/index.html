@@ -28,10 +28,10 @@
           <ul class="nav navbar-nav navbar-right">
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="fa fa-shopping-cart fa-lg"></span><span class="caret"></span></a>
-              <ul class="dropdown-menu" id="add_cart">
+              <ul class="dropdown-menu" id="add_cart" style="min-width:260px;">
 
                 <li role="separator" class="divider"></li>
-                <li><a href="#">Checkout</a></li>
+                <li><span style="padding-left:15px; cursor:pointer;" id="checkout">Checkout</span></li>
               </ul>
             </li>
           </ul>
@@ -87,7 +87,8 @@
               <p><b>Category: </b>${data[i].category}</p>
               <p><b>Stock: </b><i id="product_stock_${counter}" style="display:inline-block">${data[i].stock}</i></p>
               <p><b>Price: </b>${currency(data[i].price)}</p>
-              <p><button class="btn btn-success" id="add_cart_${counter}">Add To Cart</a></p>
+              <p><button class="btn btn-success" id="add_cart_${counter}">Add To Cart</button></p>
+              <input type="hidden" id="get_product_id_${counter}" value="${data[i]._id}">
             </div>
           </div>
         </div>
@@ -115,7 +116,7 @@
 
     let qty = 1
     function updateStock(i) {
-      let product_name;
+      let product_name, current_carts;
       product_name = $(`#product_name_${i}`).html()
       if($(`#checkout_${i}`).length > 0) {
         let current_quantity, new_quantity;
@@ -123,18 +124,22 @@
         new_quantity = Number(current_quantity) + 1
         localStorage.setItem(product_name, new_quantity)
         $(`#checkout_${i}`).remove()
-        $('#add_cart').prepend(
-          `<li id="checkout_${i}"><a href="#">${product_name}</a><i>Qty: </i><i>${new_quantity}</i></li>
-          `
-        )
+        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="padding-left:20px;">Qty: </i><i>${new_quantity}</i></a></li>`)
       } else {
-        $('#add_cart').prepend(
-          `<li id="checkout_${i}"><a href="#">${product_name}</a><i>Qty: </i><i>1</i></li>
-          `
-        )
+        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="padding-left:20px;">Qty: </i><i>1</i></a></li>`)
         localStorage.setItem(product_name, 1);
+        localStorage.setItem("cart"+i, $('#get_product_id_'+i).val());
+
+        current_carts = localStorage.setItem('carts', [])
+        current_carts = getItem()
+        new_carts = current_carts.push({obj})
+        loc
       }
     }
+
+    // $('#checkout').click(function(){
+    //   $('')
+    // })
 
     // function delete_todo(id) {
     //   $.ajax({
