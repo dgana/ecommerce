@@ -25,23 +25,25 @@
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <ul class="nav navbar-nav navbar-right">
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="fa fa-shopping-cart fa-lg"></span><span class="caret"></span></a>
-              <ul class="dropdown-menu" id="add_cart" style="min-width:260px;">
-                <li role="separator" class="divider"></li>
-                <li><span style="padding:0px 20px;" >Total: </span><i id="total_cart" style="float:right; padding:0px 20px;"></i></li>
-                <li role="separator" class="divider"></li>
-                <li><span style="padding-left:20px; cursor:pointer;" id="checkout">Checkout</span></li>
-              </ul>
-            </li>
-          </ul>
-          <form class="navbar-form">
-            <div class="form-group">
-              <input type="text" class="form-control" placeholder="Search">
-            </div>
-            <button type="submit" class="btn btn-default">Submit</button>
-          </form>
+          <div class="navbar-nav navbar-right" style="display:inline;">
+            <ul class="nav" style="display:inline">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="fa fa-shopping-cart fa-lg"></span><span class="caret"></span></a>
+                <ul class="dropdown-menu" id="add_cart" style="min-width:260px;">
+                  <li role="separator" class="divider"></li>
+                  <li><span style="padding:0px 20px;" >Total: </span><i id="total_cart" style="float:right; padding:0px 20px;"></i></li>
+                  <li role="separator" class="divider"></li>
+                  <li><span style="padding-left:20px; cursor:pointer;" id="checkout">Checkout</span></li>
+                </ul>
+              </li>
+            </ul>
+            <form class="navbar-form" style="display:inline">
+              <div class="form-group">
+                <input type="text" class="form-control" placeholder="Search">
+              </div>
+              <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+          </div>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container-fluid -->
     </nav>
@@ -53,7 +55,6 @@
       <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
     </header>
 
-
     <div class="container">
       <section class="row" id="products">
 
@@ -62,117 +63,144 @@
 
     <script>
     $( document ).ready(function() {
+      $('#checkout').click(function(e) {
+        e.preventDefault()
+        let checkout_list = localStorage.getItem('carts')
+        // console.log(checkout_list);
 
+        $.ajax({
+          method: "PUT",
+          url: "http://localhost:3000/api/product",
+          dataType: "json",
+          data: {data: checkout_list}
+        })
+        .done(function(data) {
+          alert('Data Updated!')
+        })
+      })
 
-    $.ajax({
-      method: "GET",
-      url: "http://localhost:3000/api/product",
-      dataType: "json"
-    })
-    .done(function(data) {
-      getProduct(data)
-      click_cart(data)
-    });
+      $.ajax({
+        method: "GET",
+        url: "http://localhost:3000/api/product",
+        dataType: "json"
+      })
+      .done(function(data) {
+        getProduct(data)
+        click_cart(data)
+      });
 
-    function getProduct(data){
-      let html = ""
-      let counter = 1
-      for(let i = 0; i < data.length; i++) {
-        html +=
-        `
-        <div class="col-sm-6 col-md-4">
-          <div class="thumbnail">
-            <img src="http://lorempixel.com/400/200/sports" alt="">
-            <div class="caption">
-              <h3 id="product_name_${counter}">${data[i].name}</h3>
-              <p><b>Category: </b>${data[i].category}</p>
-              <p><b>Stock: </b><i id="product_stock_${counter}" style="display:inline-block">${data[i].stock}</i></p>
-              <p><b>Price: </b>${currency(data[i].price)}</p>
-              <p><button class="btn btn-success" id="add_cart_${counter}">Add To Cart</button></p>
-              <input type="hidden" id="get_product_id_${counter}" value="${data[i]._id}">
-              <input type="hidden" id="get_product_price_${counter}" value="${data[i].price}">
+      function getProduct(data){
+        let html = ""
+        let counter = 1
+        for(let i = 0; i < data.length; i++) {
+          html +=
+          `
+          <div class="col-sm-6 col-md-4">
+            <div class="thumbnail">
+              <img src="http://lorempixel.com/400/200/sports" alt="">
+              <div class="caption">
+                <h3 id="product_name_${counter}">${data[i].name}</h3>
+                <p><b>Category: </b>${data[i].category}</p>
+                <p><b>Stock: </b><i id="product_stock_${counter}" style="display:inline-block">${data[i].stock}</i></p>
+                <p><b>Price: </b>${currency(data[i].price)}</p>
+                <p><button class="btn btn-success" id="add_cart_${counter}">Add To Cart</button></p>
+                <input type="hidden" id="get_product_id_${counter}" value="${data[i]._id}">
+                <input type="hidden" id="get_product_price_${counter}" value="${data[i].price}">
+              </div>
             </div>
           </div>
-        </div>
-        `
-        counter++
-      }
-      $("#products").html(html)
-    }
-
-    function click_cart(data) {
-      for(let i = 1; i < data.length + 1; i++) {
-        let current_stock, new_stock;
-        $(`#add_cart_${i}`).click(function(){
-          reduceStock(i)
-          updateStock(i)
-        })
-      }
-    }
-
-    function reduceStock(i) {
-      current_stock = $(`#product_stock_${i}`).html()
-      if(current_stock === '1') {
-        $('#add_cart_'+i).attr('disabled', 'disabled')
-        new_stock = current_stock - 1
-      } else {
-        new_stock = current_stock - 1
-      }
-
-      $(`#product_stock_${i}`).html(new_stock)
-    }
-
-    let inputLocalStorage = []
-    let objLocalStorage = {}
-    let totalPrice = [];
-    let viewPrice;
-    function updateStock(i) {
-      let product_name, current_carts;
-      product_name = $(`#product_name_${i}`).html()
-      if($(`#checkout_${i}`).length > 0) {
-        let current_quantity, new_quantity;
-
-        let productID = $('#get_product_id_'+i).val()
-        let productPrice = $('#get_product_price_'+i).val()
-
-        let currentCarts = localStorage.getItem('carts')
-        let getCarts = JSON.parse(currentCarts)
-        new_quantity = getCarts[i-1].qty + 1;
-
-        objLocalStorage = {id: productID, name: product_name, qty: new_quantity, price: productPrice}
-        if(objLocalStorage.id === productID) {
-          inputLocalStorage[i-1].qty = new_quantity
-          totalPrice[i-1] = Number(objLocalStorage.price) * objLocalStorage.qty
-        } else {
-          inputLocalStorage.push(objLocalStorage)
-          totalPrice[i-1] = Number(objLocalStorage.price)
+          `
+          counter++
         }
-        localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
-
-        console.log(totalPrice);
-        viewPrice = totalPrice.reduce(function(x,y){ return x + y })
-        $(`#checkout_${i}`).remove()
-        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
-        $('#total_cart').html(currency(viewPrice))
-
-      } else {
-        let productID = $('#get_product_id_'+i).val()
-        let productPrice = $('#get_product_price_'+i).val()
-
-        objLocalStorage = {id: productID, name: product_name, qty: 1, price: productPrice}
-        totalPrice[i-1] = Number(objLocalStorage.price)
-        $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
-
-        inputLocalStorage.push(objLocalStorage)
-        console.log(inputLocalStorage);
-        localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
-
-        console.log(totalPrice);
-        viewPrice = totalPrice.reduce(function(x,y){ return x + y })
-        $('#total_cart').html(currency(viewPrice))
+        $("#products").html(html)
       }
-    }
 
+      function click_cart(data) {
+        for(let i = 1; i < data.length + 1; i++) {
+          let current_stock, new_stock;
+          $(`#add_cart_${i}`).click(function(){
+            reduceStock(i)
+            updateStock(i)
+          })
+        }
+      }
+
+      function reduceStock(i) {
+        current_stock = $(`#product_stock_${i}`).html()
+        if(current_stock === '1') {
+          $('#add_cart_'+i).attr('disabled', 'disabled')
+          new_stock = current_stock - 1
+        } else {
+          new_stock = current_stock - 1
+        }
+
+        $(`#product_stock_${i}`).html(new_stock)
+      }
+
+      let inputLocalStorage = []
+      let objLocalStorage = {}
+      let totalPrice = [];
+      let viewPrice, get_cart_index;
+      function updateStock(i) {
+        let product_name, current_carts;
+        product_name = $(`#product_name_${i}`).html()
+        if($(`#checkout_${i}`).length > 0) {
+          let current_quantity, new_quantity;
+
+          let productID = $('#get_product_id_'+i).val()
+          let productPrice = $('#get_product_price_'+i).val()
+
+          let currentCarts = localStorage.getItem('carts')
+          // console.log(currentCarts);
+          let getCarts = JSON.parse(currentCarts)
+          // console.log(productID);
+          // console.log(getCarts[0].id);
+          // console.log(getCarts.productID);
+          // let get_cart_index = getCarts.indexOf(getCarts[0].productID)
+          // console.log(get_cart_index);
+          // console.log(i);
+          // console.log("1 : ", getCarts);
+          // console.log("2 : ", getCarts[0]);
+          // console.log("3 : ", getCarts[i-1]);
+          new_quantity = getCarts[getCarts.length-1].qty + 1;
+          objLocalStorage = {id: productID, name: product_name, qty: new_quantity, price: productPrice}
+          console.log(objLocalStorage);
+          if(objLocalStorage.id === productID) {
+            // console.log(inputLocalStorage[i-1]);
+            inputLocalStorage[inputLocalStorage.length-1].qty = new_quantity
+            totalPrice[totalPrice.length-1] = Number(objLocalStorage.price) * objLocalStorage.qty
+          } else {
+            inputLocalStorage.push(objLocalStorage)
+            totalPrice[totalPrice.length-1] = Number(objLocalStorage.price)
+          }
+          localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
+
+          // console.log(totalPrice);
+          viewPrice = totalPrice.reduce(function(x,y){ return x + y })
+          $(`#checkout_${i}`).remove()
+          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
+          $('#total_cart').html(currency(viewPrice))
+
+        } else {
+          let productID = $('#get_product_id_'+i).val()
+          let productPrice = $('#get_product_price_'+i).val()
+
+          objLocalStorage = {id: productID, index: i-1, name: product_name, qty: 1, price: productPrice}
+          // console.log(i);
+          console.log(objLocalStorage);
+          totalPrice[i-1] = Number(objLocalStorage.price)
+          // console.log(totalPrice[i-1]);
+          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
+
+          inputLocalStorage.push(objLocalStorage)
+          // console.log(inputLocalStorage);
+          localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
+          console.log(localStorage.getItem('carts'));
+          // console.log(totalPrice);
+          viewPrice = totalPrice.reduce(function(x,y){ return x + y })
+          $('#total_cart').html(currency(viewPrice))
+        }
+      }
     });
     </script>
   </body>
