@@ -3,8 +3,8 @@ var router = express.Router()
 var controller = require('../controllers/product')
 
 router.post('/', controller.add)
-router.get('/', controller.read)
-// router.put('/:id', controller.update)
+router.get('/', controller.readAll)
+router.get('/:id', controller.readOne)
 router.put('/', controller.update)
 router.delete('/:id', controller.delete)
 
