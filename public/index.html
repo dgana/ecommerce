@@ -154,11 +154,13 @@
       let inputLocalStorage = []
       let objLocalStorage = {}
       let totalPrice = [];
-      let viewPrice, get_cart_index, indexes;
+      let viewPrice, get_cart_index, indexesCart, indexesTotal;
 
       function updateStock(i) {
         let product_name, current_carts;
         product_name = $(`#product_name_${i}`).html()
+
+        // If cart ID already exists
         if($(`#checkout_${i}`).length > 0) {
           let current_quantity, new_quantity;
           let productID = $('#get_product_id_'+i).val()
@@ -169,26 +171,30 @@
           var result = $.grep(getCarts, function(e){ return e.index === i; });
           objLocalStorage = {id: productID, name: product_name, qty: new_quantity, price: productPrice}
           indexes = $.map(inputLocalStorage, function(obj, index) {
-              if(obj.index == i) {
+              if(obj.index === i) {
                   return index;
               }
           })
           get_cart_index = indexes[0]
-
+          console.log(totalPrice);
           if(objLocalStorage.id === productID) {
             // update existing cart if productID exist
             inputLocalStorage[get_cart_index].qty = new_quantity
-            totalPrice[get_cart_index] = Number(objLocalStorage.price) * objLocalStorage.qty
+            console.log(totalPrice);
+
+            totalPrice[i-1] = Number(objLocalStorage.price) * objLocalStorage.qty
+
           } else {
             // add new cart if productID not exist
             inputLocalStorage.push(objLocalStorage)
-            totalPrice[get_cart_index] = Number(objLocalStorage.price)
+            console.log(totalPrice);
+            totalPrice[i-1] = Number(objLocalStorage.price)
           }
           localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
 
           viewPrice = totalPrice.reduce(function(x,y){ return x + y })
           $(`#checkout_${i}`).remove()
-          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[get_cart_index])}</i></a></li>`)
+          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
           $('#total_cart').html(currency(viewPrice))
 
         } else {
@@ -197,13 +203,18 @@
 
           objLocalStorage = {id: productID, index: i, name: product_name, qty: 1, price: productPrice}
 
-          totalPrice[i-1] = Number(objLocalStorage.price)
-
-          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[i-1])}</i></a></li>`)
+          totalPrice[0] = Number(objLocalStorage.price)
+          indexes = $.map(inputLocalStorage, function(obj, index) {
+              if(obj.index === i) {
+                  return index;
+              }
+          })
+          get_cart_index = indexes[0]
+          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[0])}</i></a></li>`)
 
           inputLocalStorage.push(objLocalStorage)
           localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
-
+          console.log(totalPrice);
           viewPrice = totalPrice.reduce(function(x,y){ return x + y })
           $('#total_cart').html(currency(viewPrice))
         }
