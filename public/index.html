@@ -170,12 +170,12 @@
 
           var result = $.grep(getCarts, function(e){ return e.index === i; });
           objLocalStorage = {id: productID, name: product_name, qty: new_quantity, price: productPrice}
-          indexes = $.map(inputLocalStorage, function(obj, index) {
+          indexesCart = $.map(inputLocalStorage, function(obj, index) {
               if(obj.index === i) {
                   return index;
               }
           })
-          get_cart_index = indexes[0]
+          get_cart_index = indexesCart[0]
           console.log(totalPrice);
           if(objLocalStorage.id === productID) {
             // update existing cart if productID exist
