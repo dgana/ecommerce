@@ -64,8 +64,6 @@
     <script>
     $( document ).ready(function() {
 
-
-
       $('#checkout').click(function(e) {
         e.preventDefault()
         let checkout_list = localStorage.getItem('carts')
@@ -100,7 +98,6 @@
         })
         getProduct(data)
         click_cart(data)
-
       });
 
       function getProduct(data){
@@ -154,7 +151,8 @@
       let inputLocalStorage = []
       let objLocalStorage = {}
       let totalPrice = [];
-      let viewPrice, get_cart_index, indexesCart, indexesTotal;
+      let objTotalPrice = {};
+      let viewPrice, get_cart_index, get_price_index, indexesCart, indexesTotal;
 
       function updateStock(i) {
         let product_name, current_carts;
@@ -203,19 +201,26 @@
 
           objLocalStorage = {id: productID, index: i, name: product_name, qty: 1, price: productPrice}
 
-          totalPrice[0] = Number(objLocalStorage.price)
-          indexes = $.map(inputLocalStorage, function(obj, index) {
+          objTotalPrice = {price: Number(objLocalStorage.price), index: i}
+          totalPrice.push(objTotalPrice)
+
+          indexesTotal = $.map(totalPrice, function(obj, index) {
               if(obj.index === i) {
                   return index;
               }
           })
-          get_cart_index = indexes[0]
-          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[0])}</i></a></li>`)
+          get_price_index = indexesTotal[0]
+
+          console.log("PRICE INDEX = " + get_price_index);
+          console.log("TOTAL PRICE = " + JSON.stringify(totalPrice));
+
+          $('#add_cart').prepend(`<li id="checkout_${i}"><a href="#">${product_name}<i style="float:right;">${currency(totalPrice[get_price_index].price)}</i></a></li>`)
 
           inputLocalStorage.push(objLocalStorage)
           localStorage.setItem('carts', JSON.stringify(inputLocalStorage))
-          console.log(totalPrice);
-          viewPrice = totalPrice.reduce(function(x,y){ return x + y })
+
+          viewPrice = totalPrice.reduce(function(x,y){ return {price: x.price + y.price} })
+          console.log(viewPrice);
           $('#total_cart').html(currency(viewPrice))
         }
       }
